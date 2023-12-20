@@ -27,7 +27,7 @@ process_commit() {
     if [ "$pr_associated" -eq "0" ]; then
         org_role=$(curl -s -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token $ACCESS_TOKEN" \
-            "$GITHUB_ENTERPRISE_URL/api/v3/orgs/plaid/memberships/$committer" | jq -r '.role')
+            "$GITHUB_ENTERPRISE_URL/api/v3/orgs/$orgname/memberships/$committer" | jq -r '.role')
             
         repo_role=$(curl -s -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token $ACCESS_TOKEN" \
