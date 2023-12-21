@@ -68,7 +68,7 @@ while true; do
     commit_data=$(curl -s -H "Accept: application/vnd.github.v3+json" \
         -H "Authorization: token $ACCESS_TOKEN" \
         "$GITHUB_ENTERPRISE_URL/api/v3/repos/$REPO/commits?since=$SINCE&sha=master&page=$page" | jq -r '.[] | select(.parents | length == 1) | [.sha, .html_url, .commit.author.name, .commit.author.date, .author.login] | @csv' | tr -d '"')
-
+    #NOTE IF THE NAME OF YOUR MASTER BRANCH IS DIFFERENT REPLACE THIS        ^^^^
     # Break loop if no more commits are found
     if [ -z "$commit_data" ]; then
         echo "No more direct commits found on page $page."
