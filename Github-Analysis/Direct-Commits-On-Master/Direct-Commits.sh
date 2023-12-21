@@ -1,5 +1,5 @@
 #!/bin/bash
-
+ 
 # Prompt user for necessary information
 read -p "Enter your Github Enterprise URL (include https://): " GITHUB_ENTERPRISE_URL
 read -p "Enter the name of the organization: " orgname
