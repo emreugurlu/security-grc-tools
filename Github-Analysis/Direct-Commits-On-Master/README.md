@@ -30,6 +30,7 @@ If you encounter a permission error, ensure the script is executable (refer to t
 - The name of the organization
 - The name of the repository
 - Your GitHub Access Token
+- The name of your master branch
 - The since date for the audit (format: yyyy-mm-dd)
 
 ## Output
