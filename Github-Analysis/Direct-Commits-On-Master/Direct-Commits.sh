@@ -5,7 +5,7 @@ read -p "Enter your Github Enterprise URL (include https://): " GITHUB_ENTERPRIS
 read -p "Enter the name of the organization: " orgname
 read -p "Enter the name of the repo: " actualname
 read -p "Enter your Github Access Token: " ACCESS_TOKEN
-read -p "Enter the branch you want to check: " TARGET_BRANCH
+read -p "Enter the name of the master branch you want to check: " TARGET_BRANCH
 read -p "Enter the date you want to check from (yyyy-mm-dd): " SINCE
 
 # Combine organization and repository name for full repo path
