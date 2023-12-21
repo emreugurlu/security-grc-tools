@@ -5,6 +5,7 @@ read -p "Enter your Github Enterprise URL (include https://): " GITHUB_ENTERPRIS
 read -p "Enter the name of the organization: " orgname
 read -p "Enter the name of the repo: " actualname
 read -p "Enter your Github Access Token: " ACCESS_TOKEN
+read -p "Enter the branch you want to check: " TARGET_BRANCH
 read -p "Enter the date you want to check from (yyyy-mm-dd): " SINCE
 
 # Combine organization and repository name for full repo path
@@ -67,8 +68,8 @@ while true; do
     # Fetch commit data from GitHub API
     commit_data=$(curl -s -H "Accept: application/vnd.github.v3+json" \
         -H "Authorization: token $ACCESS_TOKEN" \
-        "$GITHUB_ENTERPRISE_URL/api/v3/repos/$REPO/commits?since=$SINCE&sha=master&page=$page" | jq -r '.[] | select(.parents | length == 1) | [.sha, .html_url, .commit.author.name, .commit.author.date, .author.login] | @csv' | tr -d '"')
-    #NOTE IF THE NAME OF YOUR MASTER BRANCH IS DIFFERENT REPLACE THIS        ^^^^
+        "$GITHUB_ENTERPRISE_URL/api/v3/repos/$REPO/commits?since=$SINCE&sha=$TARGET_BRANCH&page=$page" | jq -r '.[] | select(.parents | length == 1) | [.sha, .html_url, .commit.author.name, .commit.author.date, .author.login] | @csv' | tr -d '"')
+
     # Break loop if no more commits are found
     if [ -z "$commit_data" ]; then
         echo "No more direct commits found on page $page."
