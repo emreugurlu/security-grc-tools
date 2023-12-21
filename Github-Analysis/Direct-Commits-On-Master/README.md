@@ -30,7 +30,7 @@ If you encounter a permission error, ensure the script is executable (refer to t
 - The name of the organization
 - The name of the repository
 - Your GitHub Access Token
-- The start date for the audit (format: yyyy-mm-dd)
+- The since date for the audit (format: yyyy-mm-dd)
 
 ## Output
 The script outputs a CSV file named `<repository_name>_directcommits.csv`. This file contains details of all direct commits made without associated pull requests, including the PR link, author, date, committer, and their roles in the organization and repository.
