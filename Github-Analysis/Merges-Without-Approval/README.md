@@ -17,12 +17,12 @@ You will also need:
 ## Installation
 1. Download or copy the script to your local machine.
 2. Open a terminal and navigate to the directory where the script is located.
-3. Make the script executable: chmod +x unapproved_prs_audit.sh
+3. Make the script executable: `chmod +x unapproved_prs_audit.sh`
 
 
 ## Running the Script
 1. In the terminal, navigate to the script's directory.
-2. Start the script: ./unapproved_prs_audit.sh
+2. Start the script: `./unapproved_prs_audit.sh`
 
 3. Enter the requested information when prompted:
 - GitHub Enterprise URL
