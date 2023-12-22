@@ -1,7 +1,7 @@
 # Security-GRC-Tools
 
 ## Overview
-Welcome to the `security-grc-tools` repository. This repository is a collection of tools, scripts, and techniques focused on Governance, Risk Management, and Compliance (GRC) within the realm of information security. Our goal is to provide a comprehensive inventory of resources that can be used for effective GRC monitoring and management in various technology environments.
+Welcome to the `security-grc-tools` repository. This repository is a collection of tools, scripts, and techniques focused on Governance, Risk Management, and Compliance (GRC) within the realm of information security. My goal is to provide a comprehensive inventory of resources that can be used for effective GRC monitoring and management in various technology environments.
 
 ## Repository Contents
 This repository currently includes:
@@ -16,7 +16,7 @@ To get started with these tools:
 3. Follow the instructions in the tool's specific README for setup and usage.
 
 ## How to Contribute
-We welcome contributions from the community! If you have a tool, script, or technique that you believe would be beneficial to this repository, please follow these steps:
+Contributions are welcome from the community! If you have a tool, script, or technique that you believe would be beneficial to this repository, please follow these steps:
 1. Fork the repository.
 2. Create a new branch for your contribution.
 3. Add your tool, script, or documentation.
