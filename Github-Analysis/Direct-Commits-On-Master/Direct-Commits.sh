@@ -2,7 +2,7 @@
 
 # Prompt user for necessary information
 read -p "Enter your Github Enterprise URL (include https://): " GITHUB_ENTERPRISE_URL
-read -p "Enter the name of the organization: " orgname
+read -p "Enter the name of the organization: " orgnamen
 read -p "Enter the name of the repo: " actualname
 read -p "Enter your Github Access Token: " ACCESS_TOKEN
 read -p "Enter the name of the master branch you want to check: " TARGET_BRANCH
