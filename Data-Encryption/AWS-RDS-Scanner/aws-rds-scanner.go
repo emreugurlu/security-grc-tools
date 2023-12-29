@@ -157,9 +157,9 @@ func writeToCSV(filePrefix string, data interface{}) {
 	// Write header based on the type of data
 	switch data.(type) {
 	case []*rds.DBInstance:
-		writer.Write([]string{"DB Instance", "Encryption", "Availability Zone"})
+		writer.Write([]string{"DB Instance", "StorageEncryption", "Availability Zone"})
 	case []*rds.DBCluster:
-		writer.Write([]string{"DB Cluster", "Encryption", "Availability Zones"})
+		writer.Write([]string{"DB Cluster", "StorageEncryption", "Availability Zones"})
 	}
 
 	// Write data to CSV
