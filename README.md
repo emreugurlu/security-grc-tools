@@ -5,8 +5,8 @@ Welcome to the `security-grc-tools` repository. This repository is a collection 
 
 ## Repository Contents
 This repository currently includes:
-- Bash scripts for auditing GitHub repositories.
-- Go code for auditing AWS RDS Database Instances and Clusters encryption status.
+- Github-Analysis: Bash scripts for auditing GitHub repositories.
+- AWS-RDS-Scanner: Go code for auditing AWS RDS Database Instances and Clusters encryption status.
 
 Each tool or script in this repository is documented with its own README file, explaining its purpose, usage, and setup instructions.
 
