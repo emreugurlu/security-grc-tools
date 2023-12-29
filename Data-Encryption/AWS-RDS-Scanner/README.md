@@ -1,7 +1,7 @@
 # AWS-RDS-Scanner
 
 ## Overview
-Welcome to the `aws-rds-scanner` tool. This Go script allows you to scan Amazon RDS (Relational Database Service) instances and clusters in your AWS account. It provides information about encryption status, availability zones, and other details.
+Welcome to the `aws-rds-scanner` tool. This Go script allows you to scan Amazon RDS (Relational Database Service) instances and clusters in your AWS account. It provides information about StorageEncryption status, availability zones, and other details.
 
 ## Prerequisites
 Before running the script, make sure you have the following:
@@ -19,7 +19,7 @@ To get started with the `aws-rds-scanner`:
 Follow the prompts to enter your AWS credentials, region, and select the type of scan (DB Instances, DB Clusters, or Both).
 
 ## Output
-The script generates CSV files with results, named with the date and time of execution. The CSV files contain organized information about DB Instances and/or DB Clusters, including encryption status and availability zones.
+The script generates CSV files with results, named with the date and time of execution. The CSV files contain organized information about DB Instances and/or DB Clusters, including StorageEncryption status and availability zones.
 
 ## How to Contribute
 Contributions are welcome! If you have improvements, feature suggestions, or bug fixes, please follow these steps:
