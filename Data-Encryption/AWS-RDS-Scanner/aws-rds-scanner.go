@@ -168,7 +168,7 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
             if cluster.DBClusterParameterGroup != nil {
                 eit, err := checkEncryptionInTransit(rdsClient, *cluster.DBClusterParameterGroup)
                 if err == nil {
-                    encryptionInTransit = strconv.FormatBool(eit)
+                    encryptionInTransit = eit
                 }
             }
 
@@ -184,7 +184,7 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
     fmt.Printf("Results written to %s\n", fileName)
 }
 
-func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName string) (bool, error) {
+func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName string) (string, error) {
     var marker *string
     for {
         paramsOutput, err := rdsClient.DescribeDBClusterParameters(&rds.DescribeDBClusterParametersInput{
@@ -193,16 +193,23 @@ func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName string) (bo
         })
         if err != nil {
             fmt.Printf("Error retrieving parameters for group %s: %v\n", parameterGroupName, err)
-            return false, err
+            return "Error Retrieving Parameters", err
         }
 
-        for _, param := range paramsOutput.Parameters {
-            if param.ParameterName != nil && *param.ParameterName == "require_secure_transport" {
-                fmt.Printf("Parameter found - Name: %s, Value: %v, Type: %T\n", *param.ParameterName, param.ParameterValue, param.ParameterValue)
-		return param.ParameterValue != nil && strings.ToLower(*param.ParameterValue) == "on", nil
-
-            }
-        }
+		for _, param := range paramsOutput.Parameters {
+			if param.ParameterName != nil && *param.ParameterName == "require_secure_transport" {
+				fmt.Printf("Parameter found - Name: %s, Value: %v, Type: %T\n", *param.ParameterName, param.ParameterValue, param.ParameterValue)
+				
+				// Check if the parameter value is not nil
+				if param.ParameterValue != nil {
+					// Return the dereferenced value of the parameter
+					return *param.ParameterValue, nil
+				} else {
+					// Handle the case where the parameter value is nil
+					return "nil", nil
+				}
+			}
+		}
 
         if paramsOutput.Marker == nil {
             break
@@ -211,7 +218,7 @@ func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName string) (bo
     }
 
     fmt.Printf("No require_secure_transport parameter found for %s\n", parameterGroupName)
-    return false, nil
+    return "require_secure_transport parameter not found", nil
 }
 
 func joinStrings(strPointers []*string) string {
