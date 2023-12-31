@@ -144,7 +144,7 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
 
     switch d := data.(type) {
     case []*rds.DBInstance:
-        writer.Write([]string{"DB Instance", "StorageEncryption", "Engine", "Availability Zone"})
+        writer.Write([]string{"DB Instance", "StorageEncryption", "EncryptionInTransit", "Engine", "Availability Zone"})
         for _, instance := range d {
             storageEncrypted := "false"
             if instance.StorageEncrypted != nil {
@@ -159,9 +159,12 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
                 engine = *instance.Engine
             }
 
+			encryptionInTransit := checkInstanceEncryptionInTransit(rdsClient, instance)
+
             writer.Write([]string{
                 *instance.DBInstanceIdentifier,
                 storageEncrypted,
+				encryptionInTransit,
 				engine,
                 availabilityZone,
             })
@@ -173,15 +176,7 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
             if cluster.StorageEncrypted != nil {
                 storageEncrypted = strconv.FormatBool(*cluster.StorageEncrypted)
             }
-
-            var parameterName string
-            if strings.Contains(*cluster.Engine, "aurora-postgresql") {
-                parameterName = "ssl"
-            } else if strings.Contains(*cluster.Engine, "aurora-mysql") {
-                parameterName = "require_secure_transport"
-            }
-
-            encryptionInTransit, err := checkEncryptionInTransit(rdsClient, *cluster.DBClusterParameterGroup, parameterName)
+            encryptionInTransit, err := checkClusterEncryptionInTransit(rdsClient, *cluster.DBClusterParameterGroup, *cluster.Engine)
             if err != nil {
                 encryptionInTransit = "Error: " + err.Error()
             }
@@ -202,8 +197,18 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
 }
 
 
-func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName, parameterName string) (string, error) {
+func checkClusterEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName, engine string) (string, error) {
     var marker *string
+	var parameterName string
+	if strings.Contains(engine, "neptune") {
+		return "Encryption in transit is automatically enabled for all connections to an Amazon Neptune database. ", nil
+	} else if strings.Contains(engine, "aurora-postgresql") {
+		parameterName = "ssl"
+	} else if strings.Contains(engine, "aurora-mysql") {
+		parameterName = "require_secure_transport"
+	} else {
+		return "Encryption in Transit parameter check not yet applicable for this engine", nil
+	}
     for {
 		time.Sleep(50 * time.Millisecond)
         paramsOutput, err := rdsClient.DescribeDBClusterParameters(&rds.DescribeDBClusterParametersInput{
@@ -234,6 +239,61 @@ func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName, parameterN
 
     fmt.Printf("No %s parameter found for %s\n", parameterName, parameterGroupName)
     return parameterName + " parameter not found", nil
+}
+
+
+func checkInstanceEncryptionInTransit(rdsClient *rds.RDS, instance *rds.DBInstance) string {
+    engine := aws.StringValue(instance.Engine)
+
+    // Check if the engine is Aurora
+    if strings.Contains(engine, "aurora") {
+        return "Parameter Not Found Because Aurora manages encryption at the cluster level"
+    } else if strings.Contains(engine, "neptune") {
+        return "Parameter Not Found Because Neptune operates at the cluster level"
+    }
+
+    // Define the parameter name based on the engine type
+    var parameterName string
+    if engine == "mysql" {
+        parameterName = "require_secure_transport"
+    } else if engine == "postgres" {
+        parameterName = "rds.force_ssl"
+    } else {
+        return "Encryption in Transit parameter check not yet applicable for this engine"
+    }
+
+    for _, dbParameterGroup := range instance.DBParameterGroups {
+        groupName := aws.StringValue(dbParameterGroup.DBParameterGroupName)
+
+        var marker *string
+        for {
+            time.Sleep(50 * time.Millisecond)  // To avoid hitting rate limits
+            paramsOutput, err := rdsClient.DescribeDBParameters(&rds.DescribeDBParametersInput{
+                DBParameterGroupName: aws.String(groupName),
+                Marker:               marker,
+            })
+            if err != nil {
+                return "Error: " + err.Error()
+            }
+
+            for _, param := range paramsOutput.Parameters {
+                if param.ParameterName != nil && *param.ParameterName == parameterName {
+                    if param.ParameterValue != nil {
+                        return *param.ParameterValue
+                    } else {
+                        return "nil"
+                    }
+                }
+            }
+
+            if paramsOutput.Marker == nil {
+                break
+            }
+            marker = paramsOutput.Marker
+        }
+    }
+
+    return parameterName + " parameter not found"
 }
 
 
