@@ -199,7 +199,7 @@ func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName string) (bo
         for _, param := range paramsOutput.Parameters {
             if param.ParameterName != nil && *param.ParameterName == "require_secure_transport" {
                 fmt.Printf("Parameter found - Name: %s, Value: %v, Type: %T\n", *param.ParameterName, param.ParameterValue, param.ParameterValue)
-				return param.ParameterValue != nil && strings.ToLower(*param.ParameterValue) == "on", nil
+		return param.ParameterValue != nil && strings.ToLower(*param.ParameterValue) == "on", nil
 
             }
         }
