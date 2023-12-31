@@ -8,9 +8,6 @@ import (
     "strconv"
     "strings"
     "time"
-	"math"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-
 
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/credentials"
@@ -78,9 +75,8 @@ func promptUser(prompt string) string {
 func scanDBInstances(rdsClient *rds.RDS) ([]*rds.DBInstance, error) {
     var totalInstances []*rds.DBInstance
     var marker *string
-    maxAttempts := 2
 
-    for attempt := 0; attempt < maxAttempts; attempt++ {
+    for {
         instancesInput := &rds.DescribeDBInstancesInput{
             MaxRecords: aws.Int64(100),
         }
@@ -90,41 +86,26 @@ func scanDBInstances(rdsClient *rds.RDS) ([]*rds.DBInstance, error) {
 
         instancesOutput, err := rdsClient.DescribeDBInstances(instancesInput)
         if err != nil {
-            if aerr, ok := err.(awserr.Error); ok {
-                switch aerr.Code() {
-                case rds.ErrCodeDBInstanceNotFoundFault:
-                    return nil, err
-                case "ThrottlingException":
-                    fmt.Printf("Throttling error detected, retrying... (Attempt %d/%d)\n", attempt+1, maxAttempts)
-                    exponentialBackoff(attempt)
-                    continue
-                default:
-                    return nil, err
-                }
-            }
-        } else {
-            totalInstances = append(totalInstances, instancesOutput.DBInstances...)
+            return nil, err
+        }
 
-            if instancesOutput.Marker != nil {
-                marker = instancesOutput.Marker
-            } else {
-                break
-            }
+        totalInstances = append(totalInstances, instancesOutput.DBInstances...)
+
+        if instancesOutput.Marker != nil {
+            marker = instancesOutput.Marker
+        } else {
+            break
         }
     }
-    if len(totalInstances) == 0 {
-        return nil, fmt.Errorf("max retry attempts reached")
-    }
+
     return totalInstances, nil
 }
-
 
 func scanDBClusters(rdsClient *rds.RDS) ([]*rds.DBCluster, error) {
     var totalClusters []*rds.DBCluster
     var marker *string
-    maxAttempts := 2
 
-    for attempt := 0; attempt < maxAttempts; attempt++ {
+    for {
         clustersInput := &rds.DescribeDBClustersInput{
             MaxRecords: aws.Int64(100),
         }
@@ -134,35 +115,20 @@ func scanDBClusters(rdsClient *rds.RDS) ([]*rds.DBCluster, error) {
 
         clustersOutput, err := rdsClient.DescribeDBClusters(clustersInput)
         if err != nil {
-            if aerr, ok := err.(awserr.Error); ok {
-                switch aerr.Code() {
-                case rds.ErrCodeDBClusterNotFoundFault:
-                    return nil, err
-                case "ThrottlingException":
-                    fmt.Printf("Throttling error detected, retrying... (Attempt %d/%d)\n", attempt+1, maxAttempts)
-                    exponentialBackoff(attempt)
-                    continue
-                default:
-                    return nil, err
-                }
-            }
-        } else {
-            totalClusters = append(totalClusters, clustersOutput.DBClusters...)
+            return nil, err
+        }
 
-            if clustersOutput.Marker != nil {
-                marker = clustersOutput.Marker
-            } else {
-                break
-            }
+        totalClusters = append(totalClusters, clustersOutput.DBClusters...)
+
+        if clustersOutput.Marker != nil {
+            marker = clustersOutput.Marker
+        } else {
+            break
         }
     }
 
-    if len(totalClusters) == 0 {
-        return nil, fmt.Errorf("max retry attempts reached")
-    }
     return totalClusters, nil
 }
-
 
 func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
     fileName := fmt.Sprintf("%s_%s.csv", filePrefix, time.Now().Format("20060102_150405"))
@@ -238,46 +204,34 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
 
 func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName, parameterName string) (string, error) {
     var marker *string
-    maxAttempts := 2
-
-    for attempt := 0; attempt < maxAttempts; attempt++ {
+    for {
         paramsOutput, err := rdsClient.DescribeDBClusterParameters(&rds.DescribeDBClusterParametersInput{
             DBClusterParameterGroupName: aws.String(parameterGroupName),
             Marker:                      marker,
         })
-
         if err != nil {
-            if aerr, ok := err.(awserr.Error); ok {
-                switch aerr.Code() {
-                case "ThrottlingException":
-                    fmt.Printf("Throttling error detected, retrying... (Attempt %d/%d)\n", attempt+1, maxAttempts)
-                    exponentialBackoff(attempt)
-                    continue
-                default:
-                    fmt.Printf("Error retrieving parameters for group %s: %v\n", parameterGroupName, err)
-                    return "Error Retrieving Parameters", err
-                }
-            }
-        } else {
-            for _, param := range paramsOutput.Parameters {
-                if param.ParameterName != nil && *param.ParameterName == parameterName {
-                    fmt.Printf("Parameter found - Name: %s, Value: %v, Type: %T\n", *param.ParameterName, param.ParameterValue, param.ParameterValue)
-                    if param.ParameterValue != nil {
-                        return *param.ParameterValue, nil
-                    } else {
-                        return "nil", nil
-                    }
-                }
-            }
-
-            if paramsOutput.Marker == nil {
-                break
-            }
-            marker = paramsOutput.Marker
+            fmt.Printf("Error retrieving parameters for group %s: %v\n", parameterGroupName, err)
+            return "Error Retrieving Parameters", err
         }
+
+        for _, param := range paramsOutput.Parameters {
+            if param.ParameterName != nil && *param.ParameterName == parameterName {
+                fmt.Printf("Parameter found - Name: %s, Value: %v, Type: %T\n", *param.ParameterName, param.ParameterValue, param.ParameterValue)
+                if param.ParameterValue != nil {
+                    return *param.ParameterValue, nil
+                } else {
+                    return "nil", nil
+                }
+            }
+        }
+
+        if paramsOutput.Marker == nil {
+            break
+        }
+        marker = paramsOutput.Marker
     }
 
-    fmt.Printf("No %s parameter found for %s after %d attempts\n", parameterName, parameterGroupName, maxAttempts)
+    fmt.Printf("No %s parameter found for %s\n", parameterName, parameterGroupName)
     return parameterName + " parameter not found", nil
 }
 
@@ -292,6 +246,3 @@ func joinStrings(strPointers []*string) string {
     return strings.Join(strValues, ", ")
 }
 
-func exponentialBackoff(attempt int) {
-    time.Sleep(time.Second * time.Duration(math.Pow(2, float64(attempt))))
-}
