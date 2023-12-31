@@ -244,17 +244,13 @@ func checkClusterEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName, eng
 
 func checkInstanceEncryptionInTransit(rdsClient *rds.RDS, instance *rds.DBInstance) string {
     engine := aws.StringValue(instance.Engine)
-
+	var parameterName string
     // Check if the engine is Aurora
     if strings.Contains(engine, "aurora") {
         return "Parameter Not Found Because Aurora manages encryption at the cluster level"
     } else if strings.Contains(engine, "neptune") {
         return "Parameter Not Found Because Neptune operates at the cluster level"
-    }
-
-    // Define the parameter name based on the engine type
-    var parameterName string
-    if engine == "mysql" {
+    } else if engine == "mysql" {
         parameterName = "require_secure_transport"
     } else if engine == "postgres" {
         parameterName = "rds.force_ssl"
