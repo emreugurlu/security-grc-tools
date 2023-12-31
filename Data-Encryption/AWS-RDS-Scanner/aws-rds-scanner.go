@@ -144,7 +144,7 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
 
     switch d := data.(type) {
     case []*rds.DBInstance:
-        writer.Write([]string{"DB Instance", "StorageEncryption", "Availability Zone"})
+        writer.Write([]string{"DB Instance", "StorageEncryption", "Engine", "Availability Zone"})
         for _, instance := range d {
             storageEncrypted := "false"
             if instance.StorageEncrypted != nil {
@@ -154,29 +154,46 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
             if instance.AvailabilityZone != nil {
                 availabilityZone = *instance.AvailabilityZone
             }
-            writer.Write([]string{*instance.DBInstanceIdentifier, storageEncrypted, availabilityZone})
+            engine := ""
+            if instance.Engine != nil {
+                engine = *instance.Engine
+            }
+
+            writer.Write([]string{
+                *instance.DBInstanceIdentifier,
+                storageEncrypted,
+				engine,
+                availabilityZone,
+            })
         }
     case []*rds.DBCluster:
-        writer.Write([]string{"DB Cluster", "StorageEncrypted", "Availability Zones", "EncryptionInTransit"})
+        writer.Write([]string{"DB Cluster", "StorageEncrypted", "EncryptionInTransit", "Engine", "Availability Zones"})
         for _, cluster := range d {
             storageEncrypted := "false"
             if cluster.StorageEncrypted != nil {
                 storageEncrypted = strconv.FormatBool(*cluster.StorageEncrypted)
             }
 
-            encryptionInTransit := "Unknown"
-            if cluster.DBClusterParameterGroup != nil {
-                eit, err := checkEncryptionInTransit(rdsClient, *cluster.DBClusterParameterGroup)
-                if err == nil {
-                    encryptionInTransit = eit
-                }
+            var parameterName string
+            if strings.Contains(*cluster.Engine, "aurora-postgresql") {
+                parameterName = "ssl"
+            } else if strings.Contains(*cluster.Engine, "aurora-mysql") {
+                parameterName = "require_secure_transport"
             }
+
+            encryptionInTransit, err := checkEncryptionInTransit(rdsClient, *cluster.DBClusterParameterGroup, parameterName)
+            if err != nil {
+                encryptionInTransit = "Error: " + err.Error()
+            }
+
+            availabilityZones := joinStrings(cluster.AvailabilityZones)
 
             writer.Write([]string{
                 *cluster.DBClusterIdentifier,
                 storageEncrypted,
-                joinStrings(cluster.AvailabilityZones),
                 encryptionInTransit,
+                *cluster.Engine,
+                availabilityZones,
             })
         }
     }
@@ -184,7 +201,8 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
     fmt.Printf("Results written to %s\n", fileName)
 }
 
-func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName string) (string, error) {
+
+func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName, parameterName string) (string, error) {
     var marker *string
     for {
         paramsOutput, err := rdsClient.DescribeDBClusterParameters(&rds.DescribeDBClusterParametersInput{
@@ -196,20 +214,16 @@ func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName string) (st
             return "Error Retrieving Parameters", err
         }
 
-		for _, param := range paramsOutput.Parameters {
-			if param.ParameterName != nil && *param.ParameterName == "require_secure_transport" {
-				fmt.Printf("Parameter found - Name: %s, Value: %v, Type: %T\n", *param.ParameterName, param.ParameterValue, param.ParameterValue)
-				
-				// Check if the parameter value is not nil
-				if param.ParameterValue != nil {
-					// Return the dereferenced value of the parameter
-					return *param.ParameterValue, nil
-				} else {
-					// Handle the case where the parameter value is nil
-					return "nil", nil
-				}
-			}
-		}
+        for _, param := range paramsOutput.Parameters {
+            if param.ParameterName != nil && *param.ParameterName == parameterName {
+                fmt.Printf("Parameter found - Name: %s, Value: %v, Type: %T\n", *param.ParameterName, param.ParameterValue, param.ParameterValue)
+                if param.ParameterValue != nil {
+                    return *param.ParameterValue, nil
+                } else {
+                    return "nil", nil
+                }
+            }
+        }
 
         if paramsOutput.Marker == nil {
             break
@@ -217,9 +231,10 @@ func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName string) (st
         marker = paramsOutput.Marker
     }
 
-    fmt.Printf("No require_secure_transport parameter found for %s\n", parameterGroupName)
-    return "require_secure_transport parameter not found", nil
+    fmt.Printf("No %s parameter found for %s\n", parameterName, parameterGroupName)
+    return parameterName + " parameter not found", nil
 }
+
 
 func joinStrings(strPointers []*string) string {
     var strValues []string
