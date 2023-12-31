@@ -205,6 +205,7 @@ func writeToCSV(filePrefix string, data interface{}, rdsClient *rds.RDS) {
 func checkEncryptionInTransit(rdsClient *rds.RDS, parameterGroupName, parameterName string) (string, error) {
     var marker *string
     for {
+		time.Sleep(50 * time.Millisecond)
         paramsOutput, err := rdsClient.DescribeDBClusterParameters(&rds.DescribeDBClusterParametersInput{
             DBClusterParameterGroupName: aws.String(parameterGroupName),
             Marker:                      marker,
