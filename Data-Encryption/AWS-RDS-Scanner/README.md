@@ -32,9 +32,10 @@ Contributions are welcome! If you have improvements, feature suggestions, or bug
 ## Support and Issues
 If you encounter any issues or have questions about the script, please open an issue in the repository.
 
-## Note
-StorageEncryption = RDS encrypted instances and clusters use the AES-256 encryption algorithm to encrypt your data on the server that hosts your Amazon RDS DB instances. With RDS encryption enabled, the data stored on the instances' underlying storage, the automated backups, read replicas, and snapshots, are all encrypted.
-It is recommended to implement encryption in order to protect your data from unauthorized access or disclosure.
+## Note on Encryption
+The script focuses on two main types of encryption:
+- **Encryption-At-Storage:** Checks if the `StorageEncrypted` attribute is set to true, ensuring data at rest is encrypted.
+- **Encryption-In-Transit:** Audits varying encryption-in-transit configurations, adapting to different AWS RDS engine types and settings.
 
 ## Acknowledgements
 A special thank you to all contributors who help improve and maintain this tool. Your efforts are appreciated in advancing AWS RDS scanning practices.
