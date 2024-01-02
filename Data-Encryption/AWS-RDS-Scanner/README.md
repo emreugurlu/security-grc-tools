@@ -41,7 +41,27 @@ When you run the `aws-rds-scanner` script, it will guide you through several pro
 Please ensure you have your AWS credentials and the specific region details ready before starting the script. Knowing the type of RDS resources (Instances or Clusters) you intend to audit will also streamline the process.
 
 ## Output
-The script generates CSV files with results, named with the date and time of execution. The CSV files contain organized information about DB Instances and/or DB Clusters, including StorageEncryption status and availability zones.
+
+Upon successful execution, the `aws-rds-scanner` script generates CSV files that detail the results of the scan. These files are named based on the date and time of the script's execution. Each file contains organized and comprehensive information about the scanned AWS RDS resources. Here’s what you can expect in the output files:
+
+- **For DB Instances:**
+  - The CSV file for instances (named like `DBInstances_YYYYMMDD_HHMMSS.csv`) will include columns such as:
+    - `DB Instance Identifier`
+    - `Storage Encrypted` (Yes/No)
+    - `Encryption In Transit` (Status)
+    - `Engine Type`
+    - `Availability Zone`
+
+- **For DB Clusters:**
+  - The CSV file for clusters (named like `DBClusters_YYYYMMDD_HHMMSS.csv`) will include similar details tailored for cluster configurations:
+    - `DB Cluster Identifier`
+    - `Storage Encrypted` (Yes/No)
+    - `Encryption In Transit` (Status)
+    - `Engine Type`
+    - `Availability Zones` (comma-separated if multiple)
+
+These CSV files serve as a comprehensive audit report, providing a clear view of the encryption status and other vital details of your RDS instances and clusters, aiding in compliance and security analysis.
+
 
 ## How to Contribute
 Contributions are welcome! If you have improvements, feature suggestions, or bug fixes, please follow these steps:
