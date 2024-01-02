@@ -16,7 +16,29 @@ To get started with the `aws-rds-scanner`:
 2. Navigate to the project directory: `cd aws-rds-scanner`
 3. Run the script: `go run rdsdatabasescan.go`
 
-Follow the prompts to enter your AWS credentials, region, and select the type of scan (DB Instances, DB Clusters, or Both).
+## Script Prompts
+
+When you run the `aws-rds-scanner` script, it will guide you through several prompts to gather necessary information:
+
+1. **AWS Credentials:**
+   - You will be asked to input the following:
+     - `Enter AWS Access Key ID:`
+     - `Enter AWS Secret Access Key:`
+     - `Enter AWS Session Token (press Enter if not applicable):`
+
+2. **AWS Region:**
+   - Prompt for specifying the AWS Region where the scan will be performed:
+     - `Enter AWS Region:`
+
+3. **Type of Scan:**
+   - Choose the type of scan you wish to perform, with the options being:
+     - `Select Scan Type:`
+       1. `DB Instances`
+       2. `DB Clusters`
+       3. `Both`
+     - `Enter your choice (1, 2, or 3):`
+
+Please ensure you have your AWS credentials and the specific region details ready before starting the script. Knowing the type of RDS resources (Instances or Clusters) you intend to audit will also streamline the process.
 
 ## Output
 The script generates CSV files with results, named with the date and time of execution. The CSV files contain organized information about DB Instances and/or DB Clusters, including StorageEncryption status and availability zones.
