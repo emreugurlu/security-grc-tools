@@ -1,7 +1,14 @@
 # AWS-RDS-Scanner
 
 ## Overview
-Welcome to the `aws-rds-scanner` tool. This Go script allows you to scan Amazon RDS (Relational Database Service) instances and clusters in your AWS account. It provides information about StorageEncryption status, availability zones, and other details.
+
+Welcome to the `aws-rds-scanner` tool. Developed in Go, this script is designed to comprehensively audit Amazon RDS (Relational Database Service) instances and clusters within your AWS account. Its primary function is to evaluate and report on the encryption status of your RDS resources, crucial for maintaining security and compliance. The tool focuses on two key aspects:
+
+- **Encryption-At-Storage:** It checks whether the RDS instances and clusters have the `StorageEncrypted` attribute set to true, indicating that the data at rest is encrypted.
+
+- **Encryption-In-Transit:** The script assesses the configuration settings related to encryption-in-transit, varying based on different AWS RDS engine types and setups.
+
+In addition to encryption statuses, the tool also gathers and provides detailed information about other vital attributes, such as engine types, availability zones, and more. This makes the `aws-rds-scanner` a valuable asset for administrators and compliance teams who need to ensure their AWS RDS deployments meet strict security standards.
 
 ## Prerequisites
 Before running the script, make sure you have the following:
